@@ -1,0 +1,138 @@
+version: '3.8'
+
+networks:
+  innowise-network:
+    driver: bridge
+
+volumes:
+  auth-db-data:
+  user-db-data:
+  order-db-data:
+
+services:
+  eureka-server:
+    image: springcloud/eureka
+    container_name: ${COMPOSE_PROJECT_NAME}-eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - innowise-network
+
+  auth-db:
+    image: postgres:14-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-auth-db
+    environment:
+      POSTGRES_DB: ${AUTH_DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    ports:
+      - "${AUTH_DB_PORT}:5432"
+    networks:
+      - innowise-network
+
+  user-db:
+    image: postgres:14-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-user-db
+    environment:
+      POSTGRES_DB: ${USER_DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    ports:
+      - "${USER_DB_PORT}:5432"
+    networks:
+      - innowise-network
+
+  order-db:
+    image: postgres:14-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-order-db
+    environment:
+      POSTGRES_DB: ${ORDER_DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - order-db-data:/var/lib/postgresql/data
+    ports:
+      - "${ORDER_DB_PORT}:5432"
+    networks:
+      - innowise-network
+
+  api-gateway:
+    build:
+      context: ./api-gateway-service
+    container_name: ${COMPOSE_PROJECT_NAME}-gateway
+    ports:
+      - "${GATEWAY_PORT}:8080"
+    depends_on:
+      - eureka-server
+    environment:
+      - EUREKA_URI=${EUREKA_URI}
+    networks:
+      - innowise-network
+
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: ${COMPOSE_PROJECT_NAME}-auth-service
+    ports:
+      - "${AUTH_SERVICE_PORT}:9001"
+    depends_on:
+      - eureka-server
+      - auth-db
+    environment:
+      - SERVER_PORT=9001
+      - SPRING_APPLICATION_NAME=auth-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_URI}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://auth-db:5432/${AUTH_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - APP_API_BASE-PATH=/api/v1
+    networks:
+      - innowise-network
+
+  user-service:
+    build:
+      context: ./user-service
+    container_name: ${COMPOSE_PROJECT_NAME}-user-service
+    ports:
+      - "${USER_SERVICE_PORT}:9002"
+    depends_on:
+      - eureka-server
+      - user-db
+      - auth-service
+    environment:
+      - SERVER_PORT=9002
+      - SPRING_APPLICATION_NAME=user-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_URI}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://user-db:5432/${USER_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - APP_API_BASE-PATH=/api/v1
+      - APP_AUTH-SERVICE_VALIDATE-URL=http://auth-service:9001/api/v1/auth/validate
+    networks:
+      - innowise-network
+
+  order-service:
+    build:
+      context: ./order-service
+    container_name: ${COMPOSE_PROJECT_NAME}-order-service
+    ports:
+      - "${ORDER_SERVICE_PORT}:9003"
+    depends_on:
+      - eureka-server
+      - order-db
+      - auth-service
+    environment:
+      - SERVER_PORT=9003
+      - SPRING_APPLICATION_NAME=order-service
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=${EUREKA_URI}
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://order-db:5432/${ORDER_DB_NAME}
+      - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
+      - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
+      - APP_API_BASE-PATH=/api/v1
+      - APP_AUTH-SERVICE_VALIDATE-URL=http://auth-service:9001/api/v1/auth/validate
+    networks:
+      - innowise-network
