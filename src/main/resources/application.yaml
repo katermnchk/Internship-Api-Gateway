@@ -1,1 +1,3 @@
-spring.application.name=InnowiseApiGateway
+spring:
+  application:
+    name: InnowiseApiGateway
