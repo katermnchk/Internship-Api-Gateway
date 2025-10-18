@@ -92,6 +92,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - APP_API_BASE-PATH=/api/v1
       - SERVICES_USER_URL=http://user-service:9002
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET}
     networks:
       - innowise-network
 
@@ -114,6 +115,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - APP_API_BASE-PATH=/api/v1
       - APP_AUTH-SERVICE_VALIDATE-URL=http://auth-service:9001/api/v1/auth/validate
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET}
     networks:
       - innowise-network
 
