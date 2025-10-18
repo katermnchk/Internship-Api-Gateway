@@ -8,6 +8,7 @@ volumes:
   auth-db-data:
   user-db-data:
   order-db-data:
+  redis-data:
 
 services:
   eureka-server:
@@ -135,5 +136,16 @@ services:
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - APP_API_BASE-PATH=/api/v1
       - APP_AUTH-SERVICE_VALIDATE-URL=http://auth-service:9001/api/v1/auth/validate
+    networks:
+      - innowise-network
+
+
+  redis:
+    image: redis:6-alpine
+    container_name: ${COMPOSE_PROJECT_NAME}-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
     networks:
       - innowise-network
