@@ -11,32 +11,20 @@ spring:
           enabled: true
 
       routes:
-        - id: registration-route
-          uri: lb://auth-service
-          predicates:
-            - Path=/api/v1/register
-            - Method=POST
-
-        - id: auth-service-routes
+        - id: auth-service-route
           uri: lb://auth-service
           predicates:
             - Path=/api/v1/auth/**
-          filters:
-            - StripPrefix=2
 
-        - id: user-service-routes
+        - id: user-service-route
           uri: lb://user-service
           predicates:
             - Path=/api/v1/users/**
-          filters:
-            - StripPrefix=2
 
-        - id: order-service-routes
+        - id: order-service-route
           uri: lb://order-service
           predicates:
             - Path=/api/v1/orders/**, /api/v1/items/**
-          filters:
-            - StripPrefix=2
 
 eureka:
   client:

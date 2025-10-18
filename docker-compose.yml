@@ -90,6 +90,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=${POSTGRES_USER}
       - SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}
       - APP_API_BASE-PATH=/api/v1
+      - SERVICES_USER_URL=http://user-service:9002
     networks:
       - innowise-network
 
