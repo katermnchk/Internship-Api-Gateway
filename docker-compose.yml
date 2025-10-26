@@ -2,25 +2,14 @@ version: '3.8'
 
 networks:
   innowise-network:
-    driver: bridge
+    external: true
 
 services:
-  eureka-server:
-    image: springcloud/eureka
-    container_name: ${COMPOSE_PROJECT_NAME}-eureka
-    ports:
-      - "8761:8761"
-    networks:
-      - innowise-network
 
   api-gateway:
     build: .
-    container_name: ${COMPOSE_PROJECT_NAME}-gateway
+    container_name: api-gateway
     ports:
-      - "${GATEWAY_PORT}:8099"
-    depends_on:
-      - eureka-server
-    environment:
-      - EUREKA_URI=${EUREKA_URI}
+      - "${GATEWAY_PORT:-8099}:8099"
     networks:
       - innowise-network
