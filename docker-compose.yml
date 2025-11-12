@@ -1,0 +1,15 @@
+version: '3.8'
+
+networks:
+  app_network:
+    external: true
+
+services:
+
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    ports:
+      - "${GATEWAY_PORT:-8099}:8099"
+    networks:
+      - app_network
